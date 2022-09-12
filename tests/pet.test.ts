@@ -1,38 +1,31 @@
-import got from 'got';
 import {strict as assert} from 'assert'
-import {URLSearchParams} from 'url'
+import {PetController} from '../api/controller/pet.controller'
+
+const pet = new PetController()
 
 describe('Pet', function() {
+    
     it('receive pet by id', async function () {
-        const response = await got('https://petstore.swagger.io/v2/pet/2')
-        const body = JSON.parse(response.body);
-
-        assert(body.id == 2, 'expect id pet')
+        const body = await pet.getById(1)
+        assert(body.id == 1, 'expect id pet ${body.id}, but got ${id}')
     })
+    
     it('can be received by status', async function () {
-        let response = await got('https://petstore.swagger.io/v2/pet/findByStatus', {
-            searchParams: { status : 'avaliable'}
-        });
-        let body = JSON.parse(response.body);
+        let body = await pet.findByStatus('available')
         assert(body.length > 0)
 
-        response = await got('https://petstore.swagger.io/v2/pet/findByStatus', {
-            searchParams: { status : 'pending'}
-        });
-        body = JSON.parse(response.body);
+        body = await pet.findByStatus('pending')
         assert(body.length > 0)
 
-        response = await got('https://petstore.swagger.io/v2/pet/findByStatus', {
-            searchParams: { status : 'sold'}
-        });
-        body = JSON.parse(response.body);
+        body = await pet.findByStatus('sold')
         assert(body.length > 0)
 
-        response = await got('https://petstore.swagger.io/v2/pet/findByStatus', {
-            searchParams: new URLSearchParams({ status : ['sold', 'available']})
-        });
-        body = JSON.parse(response.body);
+        body = await pet.findByStatus(['available', 'pending'])
         assert(body.length > 0)
+        assert(body.every((pet:any) => pet.status == 'available'))
+        assert(!body.every((pet:any) => pet.status == 'pending'))
+        assert(!body.every((pet:any) => pet.status == 'sold'))
     })
 
+    
 })
